@@ -23,14 +23,40 @@ ls -lha ~/projects/datashare/GSE101086/raw
 # QC
 fastqc SRR5815193_1.fastq.gz
 
+# index genome
+mkdir -p ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Sequence/StarIndex
+STAR \
+  --runThreadN 4 \
+  --runMode genomeGenerate \
+  --genomeDir ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Sequence/StarIndex \
+  --genomeFastaFiles  ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Sequence/WholeGenomeFasta/genome.fa \
+  --sjdbGTFfile ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Annotation/Genes/genes.gtf \
+  --sjdbOverhang 100
+
+
+# align reads
+cd ~/projects/datashare/GSE101086/
+STAR \
+  --runThreadN 4 \
+  --genomeDir  ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Sequence/StarIndex \
+  --sjdbGTFfile ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Annotation/Genes/genes.gtf \
+  --readFilesCommand gunzip -c \
+  --readFilesIn raw/SRR5815193_1.fastq.gz \
+  --outFileNamePrefix GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_ \
+  --outReadsUnmapped Fastx \
+  --outSAMtype BAM SortedByCoordinate
+samtools index 	_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam
+
+
+
 ## qc align count
 cd ~/projects/datashare/GSE101086/
-echo raw/SRR5815193_1.fastq.gz > ~/projects/datashare/GSE101086/GSM2699060_notrim_fqgz.info
-echo raw/SRR5815194_1.fastq.gz > ~/projects/datashare/GSE101086/GSM2699061_notrim_fqgz.info
-echo raw/SRR5815195_1.fastq.gz > ~/projects/datashare/GSE101086/GSM2699062_notrim_fqgz.info
-echo raw/SRR5815199_1.fastq.gz > ~/projects/datashare/GSE101086/GSM2699066_notrim_fqgz.info
-echo raw/SRR5815200_1.fastq.gz > ~/projects/datashare/GSE101086/GSM2699067_notrim_fqgz.info
-echo raw/SRR5815201_1.fastq.gz > ~/projects/datashare/GSE101086/GSM2699068_notrim_fqgz.info
+echo raw/SRR5815193_1.fastq.gz > GSM2699060_notrim_fqgz.info
+echo raw/SRR5815194_1.fastq.gz > GSM2699061_notrim_fqgz.info
+echo raw/SRR5815195_1.fastq.gz > GSM2699062_notrim_fqgz.info
+echo raw/SRR5815199_1.fastq.gz > GSM2699066_notrim_fqgz.info
+echo raw/SRR5815200_1.fastq.gz > GSM2699067_notrim_fqgz.info
+echo raw/SRR5815201_1.fastq.gz > GSM2699068_notrim_fqgz.info
 
 # put wf on luke and luachn 
 
