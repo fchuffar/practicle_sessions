@@ -11,14 +11,17 @@
 ## download fastq files
 mkdir -p ~/projects/datashare/GSE101086/raw
 cd ~/projects/datashare/GSE101086/raw
-parallel-fastq-dump --threads 16 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815193
-parallel-fastq-dump --threads 16 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815194
-parallel-fastq-dump --threads 16 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815195
-parallel-fastq-dump --threads 16 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815199
-parallel-fastq-dump --threads 16 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815200
-parallel-fastq-dump --threads 16 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815201
+parallel-fastq-dump --threads 4 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815193
+parallel-fastq-dump --threads 4 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815194
+parallel-fastq-dump --threads 4 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815195
+parallel-fastq-dump --threads 4 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815199
+parallel-fastq-dump --threads 4 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815200
+parallel-fastq-dump --threads 4 --tmpdir ./ --gzip --split-files --outdir ./ --sra-id SRR5815201
 # SR or PE?
 ls -lha ~/projects/datashare/GSE101086/raw
+
+# QC
+fastqc SRR5815193_1.fastq.gz
 
 ## qc align count
 cd ~/projects/datashare/GSE101086/
