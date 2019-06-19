@@ -39,7 +39,10 @@ rule fastqc:
     output: zip="{prefix}_fastqc.zip",
             html="{prefix}_fastqc.html"
     threads: 1
-    shell:"fastqc {input.fastqgz}"
+    shell:"""
+source ~/.profile
+fastqc {input.fastqgz}
+    """
     
 rule index_genome:
     input:
@@ -48,6 +51,7 @@ rule index_genome:
     output: directory(os.path.expanduser("~/projects/datashare/genomes/{species}/UCSC/{index}/Sequence/StarIndex"))
     threads: 8
     shell:    """
+source ~/.profile
 mkdir -p {output}
 STAR \
   --runThreadN `echo "$(({threads} * 2))"` \
@@ -66,6 +70,7 @@ rule align_trimed:
     output:  "{prefix}/{sample}_{trim}_star_{species}_{index}_Aligned.sortedByCoord.out.bam"
     threads: 8
     shell:"""
+source ~/.profile
 cd {wildcards.prefix}
 STAR \
   --runThreadN `echo "$(({threads} * 2))"` \
@@ -87,6 +92,7 @@ rule count_classic_stranded:
     priority: 50
     threads: 1
     shell:"""
+source ~/.profile
 htseq-count -t exon -f bam -r pos --stranded={wildcards.stranded} -m intersection-strict --nonunique none \
   {input.bam_file} \
   {input.gtf_file} \
@@ -101,12 +107,12 @@ rule bigwig_coverage:
     output: "{prefix}/{sample}_{trim}_star_{species}_{index}_Aligned.sortedByCoord.out.bw"
     threads: 4
     shell:"""
-/summer/epistorage/miniconda3/bin/bamCoverage \
+source ~/.profile
+bamCoverage \
   -b {input.bam_file} \
   --numberOfProcessors `echo "$(({threads} * 2))"` \
   --binSize 10 \
   --minMappingQuality 30 \
   --normalizeUsingRPKM \
   -o {output}
-
     """
