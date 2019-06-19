@@ -1,3 +1,7 @@
+## Preprocessing of RNA-seq data 
+## Florent Chuffart, Celine Mandier
+## 19 june 2019
+
 # # Data description
 # https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE101086
 
@@ -25,6 +29,7 @@ ls -lha ~/projects/datashare/GSE101086/raw
 # # Pipeline "by hand""
 # ## QC
 # Calculation of quality of the reads  
+cd ~/projects/datashare/GSE101086/raw
 fastqc SRR5815193_1.fastq.gz
 
 # ## Index genome
@@ -74,10 +79,6 @@ samtools index GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned
 # Retranscription of the number of reads for each position range 
 htseq-count -t exon -f bam -r pos --stranded=yes -m intersection-strict --nonunique none ~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Annotation/Genes/genes.gtf > ~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_genes_strandedyes_classiccounts.txt
 
-htseq-count -t exon -f bam -r pos --stranded=no -m intersection-strict --nonunique none ~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Annotation/Genes/genes.gtf > ~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_genes_strandedno_classiccounts.txt
-
-htseq-count -t exon -f bam -r pos --stranded=reverse -m intersection-strict --nonunique none ~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam ~/projects/datashare/genomes/Schizosaccharomyces_pombe/Ensembl/ASM294v2/Annotation/Genes/genes.gtf > ~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_genes_strandedreverse_classiccounts.txt
-# Stranded or not?
 
 
 
@@ -92,17 +93,17 @@ echo raw/SRR5815200_1.fastq.gz > GSM2699067_notrim_fqgz.info
 echo raw/SRR5815201_1.fastq.gz > GSM2699068_notrim_fqgz.info
 
 ## snakemake on local machine 
-cd ~/projects/practicle_sessions/data/GSE101086/
-snakemake -s wf.py --dag 
-snakemake -s wf.py --cores 2 -p
+cd ~/projects/practicle_sessions/rnaseq_aligment/
+snakemake -s wf.py --dag | dot -Tpng > dag.png
+snakemake -s wf.py --cores 2 -pn
 
 # Put wf on luke and launch it
-rsync -auvP ~/projects/practicle_sessions/data/GSE101086/ luke:~/projects/practicle_sessions/data/GSE101086/
-snakemake -s ~/projects/practicle_sessions/data/GSE101086/wf.py --cores 8 -pn
-snakemake -s ~/projects/practicle_sessions/data/GSE101086/wf.py --cores 49 --cluster "oarsub --project epimed -l nodes=1/core={threads},walltime=6:00:00 " -pn
+rsync -auvP ~/projects/practicle_sessions/rnaseq_aligment/ luke:~/projects/practicle_sessions/rnaseq_aligment/
+snakemake -s ~/projects/practicle_sessions/rnaseq_aligment/wf.py --cores 8 -pn
+snakemake -s ~/projects/practicle_sessions/rnaseq_aligment/wf.py --cores 49 --cluster "oarsub --project epimed -l nodes=1/core={threads},walltime=6:00:00 " -pn
 
 ## get results
 mkdir -p ~/projects/datashare/GSE101086/raw/
 rsync -auvP luke:~/projects/datashare/GSE101086/raw/*.html ~/projects/datashare/GSE101086/raw/
 rsync -auvP luke:~/projects/datashare/GSE101086/*.txt ~/projects/datashare/GSE101086/
-rsync -auvP luke:~/projects/practicle_sessions/data/GSE101086/multiqc_notrim* ~/projects/practicle_sessions/data/GSE101086/.
+rsync -auvP luke:~/projects/practicle_sessions/rnaseq_aligment/multiqc_notrim* ~/projects/practicle_sessions/rnaseq_aligment/.
