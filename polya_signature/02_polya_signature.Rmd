@@ -1,0 +1,234 @@
+---
+title: "Non polyA gene signature"
+author: "Céline Mandier, Florent Chuffart (EpiMed/IAB/INSERM)"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    number_sections: false
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=FALSE, results="hide")    
+```
+
+
+# Non polyA gene signature
+
+
+The aim of study is to define, *in-silco*, a polyA gene signature. 
+Then we search a list of genes that are expressed in `total_RNA` condition and not expressed in `polyA_mRNA` condition.
+We plane to use the list of gene as signature to automatically detect how RNA samples have been built.
+We expect to found genes coding for histones.
+
+# Dataset
+
+```{r}
+# data 
+table_file = "POLYAvsTOTAL.complete.txt"
+main = table_file
+casevcctrl = read.table(paste0(table_file), header=TRUE)
+rownames(casevcctrl) = casevcctrl$Id
+```
+
+Data set accession number is GSE45332, it deals with transcriptomes in HCT116 cell lines (colorectal cancer cells).
+
+We are particularly intersecting in two cell lines: 
+
+  - HCT116 wild type (HCT116) 
+  - HCT116 double inactivation (DKO). 
+
+Wild types samples grow with different DSN incubation time, from 5h to 11h.
+The DSN (Duplex Specific Nuclease) permit a depletion of RNA majorities allowing an analysis of RNA minorities. 
+
+samples where prepared with two protocles:
+
+  - total_RNA 
+  - polyA_mRNA
+
+```{r echo=TRUE}
+# SRR787296 GSM1102624 	HCT116 total_RNA 5h_DSN
+# SRR787297 GSM1102625 	HCT116 total_RNA 6h_DSN
+# SRR787298 GSM1102626 	HCT116 total_RNA 7h_DSN
+# SRR787299 GSM1102627 	HCT116 total_RNA 8h_DSN
+# SRR787300 GSM1102628 	HCT116 total_RNA 9h_DSN
+# SRR787301 GSM1102629 	HCT116 total_RNA 10h_DSN
+# SRR787302 GSM1102630 	HCT116 total_RNA 11h_DSN
+# SRR787303 GSM1102631 	HCT116 polyA_mRNA
+# SRR787304 GSM1102632 	DKO total_RNA
+# SRR787305 GSM1102633 	DKO polyA_mRNA
+```
+
+
+# Methods
+
+```{r}
+# GSE45332  GSE70741  GSE72379  GSE85161
+# parameters
+l2fc_thresh1 = 0
+pval_thresh1 = 75
+
+l2fc_thresh2 = -5
+pval_thresh2 = 7
+```
+
+## Method 1: polyA_mRNA vs. total_RNA (ref.)
+
+We perform differential analysis between 2 polyA_mRNA samples and 8 total_RNA samples (ref.) using SARTools and DESeq2.
+We plot for each  `r nrow(casevcctrl)` genes -log10 of pvalue according of log2 of foldchange. 
+We use following thresholds : `r l2fc_thresh1` and `r pval_thresh1`. 
+
+The issue is:
+
+  - we have signature,
+  - we don‘t have good replicates, 
+  - so we loose statistical power (poor linear model, arbitrary pvalue).
+
+```{r}
+layout(1, respect=TRUE)
+plot(casevcctrl$log2FoldChange, -log10(casevcctrl$pvalue), xlab="log2(foldchange)", ylab="-log10(pval)", main="polyA_mRNA vs. total_RNA (ref.)")
+abline(h=pval_thresh1, v=l2fc_thresh1, col=2)
+idx_method1 = rownames(casevcctrl)[!is.na(casevcctrl$pvalue) & casevcctrl$log2FoldChange < l2fc_thresh1 & -log10(casevcctrl$pvalue) > pval_thresh1]
+```
+
+## Method 2: DKO polyA_mRNA vs. DKO total_RNA (ref.)
+
+We perform differential analysis between 1 DKO polyA_mRNA sample and 1 DKO total_RNA sample (ref.) using SARTools and DESeq2.
+We plot for each genes log2 of mean of expression according to log2 of foldchange.
+We use following thresholds : `r l2fc_thresh2` and `r pval_thresh2`. 
+We don‘t have pvalues but we could capture main effects using expression rate instead.
+
+The issue is:
+
+  - we have signature,
+  - we don‘t have replicates, 
+  - so we loose statistic,
+  - but not linear model.
+
+```{r}
+layout(matrix(1:2,1), respect=TRUE)
+layout(1, respect=TRUE)
+plot(log2(casevcctrl$norm.DKO_polyA+1) - log2(casevcctrl$norm.DKO_tot+1), log2(casevcctrl$norm.DKO_polyA + casevcctrl$norm.DKO_tot+1), xlab="log2(foldchange)", ylab="log2()", main="DKO polyA_mRNA vs. DKO total_RNA (ref.)", col=(rownames(casevcctrl)%in%idx)+1)
+abline(h=pval_thresh2, v=l2fc_thresh2, col=2)
+idx_method2 = rownames(casevcctrl)[log2(casevcctrl$norm.DKO_polyA+1) - log2(casevcctrl$norm.DKO_tot+1) < l2fc_thresh2 & log2(casevcctrl$norm.DKO_polyA+1) + log2(casevcctrl$norm.DKO_tot+1) > pval_thresh2]
+```
+
+# Results
+
+
+```{r}
+layout(1, respect=TRUE)
+VennDiagram::draw.pairwise.venn(area1=length(idx_method1), area2=length(idx_method2), cross.area=length(intersect(idx_method1,idx_method2)), category = c("method_1", "method_2"))
+```
+
+The two signatures are consistent.
+
+The two methods seem robust on the dataset.
+
+
+Futur works:
+
+  - is signature enriched in histone gene?
+  - using signature on other dataset.
+  - developping signature using ANOVA.
+
+
+
+
+
+
+
+
+
+# Supplementals
+
+Processing scrpts are available there:
+
+  - https://github.com/fchuffar/practicle_sessions/ in  `polya_signature` directory.
+  
+
+
+
+
+
+ 
+
+```{r eval=FALSE}
+# # Application
+#
+# # Description
+# Use of a gene signature specific to the human genome for determining the presence of polyA.
+# If strong expression of signature genes then no presence of polyA.
+
+table_file = "POLYAvsTOTAL.complete.txt"
+gs = c("HIST1H2AM", "HIST1H3A", "HIST1H1E", "HIST1H2AG", "HIST1H4C", "HIST1H4E", "HIST1H2BC", "HIST1H2BG", "HIST1H4H")
+#gs=idx
+samples_tot = c("norm.HTC_tot_5",	"norm.HTC_tot_6",	"norm.HTC_tot_7",	"norm.HTC_tot_8",	"norm.HTC_tot_9",	"norm.HTC_tot_10", "norm.HTC_tot_11", "norm.DKO_tot")
+samples_polyA = c("norm.HTC_polyA",	"norm.DKO_polyA")
+casevcctrl = read.table(paste0(table_file), header=TRUE)
+rownames(casevcctrl) = casevcctrl$Id
+
+# for (g in gs) {
+# v=casevcctrl[g, samples]
+# boxplot(log2(unlist(v)+1), las=2, main=paste0(table_file, " ", g))
+# }
+# i = 1
+# data = data.frame(expr=log2(unlist(d[i,])+1), gene=rep(rownames(d)[i], ncol(d)))
+# for (i in 2:nrow(d)) {
+#   data = rbind(data, data.frame(expr=log2(unlist(d[i,])+1), gene=rep(rownames(d)[i], ncol(d))))
+# }
+# boxplot(expr~gene, data, las=2)
+ 
+ 
+layout(matrix(1:2, 1), respect=TRUE)
+d = casevcctrl[gs, samples_polyA]
+data = lapply(1:nrow(d), function(i) {
+   data.frame(expr=log2(unlist(d[i,])+1), gene=rep(rownames(d)[i], ncol(d)))
+})
+data = do.call(rbind,data)
+boxplot(expr~gene, data, las=2, main="Samples polyA", ylim=c(0, 14)) 
+d = casevcctrl[gs, samples_tot]
+data = lapply(1:nrow(d), function(i) {
+   data.frame(expr=log2(unlist(d[i,])+1), gene=rep(rownames(d)[i], ncol(d)))
+})
+data = do.call(rbind,data)
+boxplot(expr~gene, data, las=2, main="Samples Total", ylim=c(0, 14)) 
+```
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Session Information
+ 
+```{r, results="verbatim"}
+sessionInfo()
+```
+ 
+ 
+ 
+ 

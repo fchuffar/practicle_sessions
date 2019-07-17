@@ -13,13 +13,6 @@ rule target:
        os.path.expanduser("~/projects/datashare/GSE101086/raw/SRR5815200_1_fastqc.zip"),
        os.path.expanduser("~/projects/datashare/GSE101086/raw/SRR5815201_1_fastqc.zip"),
 
-       os.path.expanduser("~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam"),
-       os.path.expanduser("~/projects/datashare/GSE101086/GSM2699061_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam"),
-       os.path.expanduser("~/projects/datashare/GSE101086/GSM2699062_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam"),
-       os.path.expanduser("~/projects/datashare/GSE101086/GSM2699066_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam"),
-       os.path.expanduser("~/projects/datashare/GSE101086/GSM2699067_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam"),
-       os.path.expanduser("~/projects/datashare/GSE101086/GSM2699068_notrim_star_Schizosaccharomyces_pombe_ASM294v2_Aligned.sortedByCoord.out.bam"),
-      
        os.path.expanduser("~/projects/datashare/GSE101086/GSM2699060_notrim_star_Schizosaccharomyces_pombe_ASM294v2_genes_strandedreverse_classiccounts.txt"),
        os.path.expanduser("~/projects/datashare/GSE101086/GSM2699061_notrim_star_Schizosaccharomyces_pombe_ASM294v2_genes_strandedreverse_classiccounts.txt"),
        os.path.expanduser("~/projects/datashare/GSE101086/GSM2699062_notrim_star_Schizosaccharomyces_pombe_ASM294v2_genes_strandedreverse_classiccounts.txt"),
@@ -46,9 +39,9 @@ fastqc {input.fastqgz}
     
 rule index_genome:
     input:
-      genome_fasta= os.path.expanduser("~/projects/datashare/genomes/{species}/UCSC/{index}/Sequence/WholeGenomeFasta/genome.fa"), 
-      gtf= os.path.expanduser("~/projects/datashare/genomes/{species}/UCSC/{index}/Annotation/Genes/genes.gtf"),
-    output: directory(os.path.expanduser("~/projects/datashare/genomes/{species}/UCSC/{index}/Sequence/StarIndex"))
+      genome_fasta= os.path.expanduser("~/projects/datashare/genomes/{species}/Ensembl/{index}/Sequence/WholeGenomeFasta/genome.fa"), 
+      gtf= os.path.expanduser("~/projects/datashare/genomes/{species}/Ensembl/{index}/Annotation/Genes/genes.gtf"),
+    output: directory(os.path.expanduser("~/projects/datashare/genomes/{species}/Ensembl/{index}/Sequence/StarIndex"))
     threads: 8
     shell:    """
 source ~/.profile
