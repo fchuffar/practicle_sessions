@@ -260,7 +260,7 @@ Rowv = as.dendrogram(hc_row)
 colors=
 cols = 
 gplots::heatmap.2(data, 
-  Rowv=Rowv, Colv=Colv, dendrogram=dendrogram, 
+  Rowv=Rowv, Colv=Colv, 
   col=colorRampPalette(c("cyan", "black", "red"))(20), 
   main=paste0("Mean of mean (", nrow(data), " features x ", ncol(data), " tissues)"), 
   trace="none", mar=c(10,5), useRaster=TRUE, cexRow=0.4 , cexCol=0.4
