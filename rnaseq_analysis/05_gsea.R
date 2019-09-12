@@ -1,0 +1,1 @@
+write.table(cbind(rownames(results[!is.na(results$log2FoldChange),]), results[!is.na(results$log2FoldChange),]$log2FoldChange), "gsea_input.rnk", sep="\t", row.names=FALSE, col.names=FALSE, quote=FALSE)
