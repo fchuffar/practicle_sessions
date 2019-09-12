@@ -1,0 +1,313 @@
+---
+title: "RNAseq Analysis"
+subtitle: "Non polyA gene signature"
+author: "Céline Mandier, Florent Chuffart (EpiMed/IAB/INSERM)"
+date: "`r Sys.Date()`"
+output: slidy_presentation
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, width = 75)
+knitr::opts_chunk$set(echo = TRUE, fig.align='center', dev='png', dpi = 75, fig.width=12, fig.height=4, out.width = "100%")
+# knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=FALSE, results="hide")
+```
+
+---
+
+# Prerequisites
+
+1- R, then RStudio need to be intalled:
+
+- R: https://cran.r-project.org/bin/
+- RStudio: https://www.rstudio.com/products/rstudio/download/
+   
+2- Following R packages need to be intalled:
+
+- From CRAN
+    - rmarkdown
+    - devtools
+    - gplots
+- From bioconductor: 
+    - DESeq2
+    - edgeR
+- From github: 
+    - SARTools
+
+
+```{r eval=FALSE, echo=TRUE}
+install.packages(c('rmarkdown', 'devtools', 'gplots')) # select any mirror, it is not important
+if (!requireNamespace('BiocManager', quietly = TRUE))
+   install.packages('BiocManager')
+BiocManager::install(c('DESeq2', 'edgeR'))
+devtools::install_github('PF2-pasteur-fr/SARTools', build_opts='--no-resave-data')
+```
+
+---
+
+# Purpose of the pratical session
+
+There is two main ways to prepare RNA samples before sequencing: 
+
+1. rRNA depletion using *Ribo-Zero rRNA Removal Kit*
+2. mRNA filtering using their poly(A) tails
+
+The aim of study is to select, *in-silco*, a set of genes that are expressed in condition 1 and not expressed in condition 2.
+
+We plane to use the list of gene as signature to automatically detect (or confirm) how RNA samples have been prepared.
+
+We expect to found genes coding for histones.
+
+---
+
+# Dataset
+
+The public dataset we use, deals with transcriptomes of T-cell Acute Lymphoblastic Leukemia (TALL)
+
+For 20 patients, we dispose of samples prepared with two extraction protocles:
+
+1. **total RNA**: RNA was extracted using the miRNAeasy mini kit (Qiagen). TruSeq Stranded Total RNA (w/RiboZero Gold) sample prep kit (Illumina) was used for the preparation of sequencing libraries.
+2. **polyA+ RNA**: RNA was extracted using the miRNAeasy mini kit (Qiagen). Truseq stranded mRNA sample preparation kit (Illumina) was used for the preparation of sequencing libraries.
+
+Data set accession number is GSE110637.
+
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE110637
+
+
+
+---
+
+# Design 
+
+```{r, code = readLines("design.txt"), eval=FALSE, echo=TRUE}
+```
+
+---
+
+# Preprocessing *.fastq.gz* files
+
+Preprocessing of *.fastq.gz* files has previously been detailled.
+
+Main steps are: 
+
+1. downloading fastq files using *SRA Toolkit*
+2. quality control using *FastQC*
+3. aligning reads on the genome using *STAR*
+4. counting reads using *HTSeq*
+
+Details of the preprocessing are available there: 
+
+https://github.com/fchuffar/practicle_sessions/blob/master/rnaseq_analysis/01_preprocessing.sh
+
+From preprocessing we obtain raw counts available in the *raw_count* directory.
+
+---
+
+## Differential analysis
+
+The goal of the differential analysis is, **for each gene**, to answer the question: *is there a difference of expression between conditions?*
+
+```{r echo=FALSE}
+set.seed(1)
+d = data.frame(cond=rep(c("POLYA", "TOTAL"), each=20), expr=c(rnorm(20, 6), rnorm(20, 7)))
+layout(matrix(1:2, 1), respect=TRUE)
+plot(jitter(as.numeric(d$cond)), d$expr, xaxt="n", xlab="", ylab="log2(expression + 1)", main="gene A")
+axis(1, 1:2, c("POLYA", "TOTAL"))
+boxplot(expr~cond, d, ylab="log2(expression + 1)", main="gene A")
+```
+
+---
+
+
+## Differential analysis - reminder
+
+A brief reminder of statistical bases.
+
+https://github.com/fchuffar/practicle_sessions/blob/master/notions_stat_el/ELambert_stat.pdf
+
+
+---
+
+## Differential analysis - in practice
+
+**SARTools** [1] does the job for you and produce a comprehensibv report.
+
+```{r eval=FALSE}
+source("02_differential_analysis.R")
+```
+```{r eval=TRUE, results="verbatim"}
+results = read.table("tables/POLYAvsTOTAL.complete.txt", header=TRUE)
+rownames(results) = results$Id
+head(results)
+```
+
+
+[1] H. Varet, L. Brillet-Guéguen, J.-Y. Coppee and M.-A. Dillies, SARTools: A DESeq2- and EdgeR-Based R Pipeline for Comprehensive Differential Analysis of RNA-Seq Data, PLoS One, 2016, doi: http://dx.doi.org/10.1371/journal.pone.0157022 when using this tool for any analysis published.
+
+https://github.com/PF2-pasteur-fr/SARTools
+
+---
+
+# Volcano plot
+
+Volcano plot allows to visualize entire transcriptomic analysis.
+
+It plots for each gene:
+
+$$\textit{l2fc} \text{ vs.} \textit{-log10}(\text{ adj. pvalue})$$
+
+
+---
+
+## Volcano plot - Why *l2fc*?
+
+$$l2fc = log2(foldchange) = log2(\frac{mean_{POLYA}}{mean_{TOTAL}}) = log2({mean_{POLYA}}) - log2({mean_{TOTAL}}) \simeq mean_{log2(POLYA+1)} - mean_{log2(TOTAL + 1)}$$
+  
+  
+```{r echo=FALSE}
+set.seed(1)
+d = data.frame(cond=rep(c("POLYA", "TOTAL"), each=20), expr=c(rnorm(20, 6), rnorm(20, 7)))
+layout(matrix(1:3, 1), respect=TRUE)
+plot(density(results$FoldChange, na.rm=TRUE), main="distribution of FoldChange")
+plot(density(results$log2FoldChange, na.rm=TRUE), main="distribution of log2FoldChange")
+boxplot(expr~cond, d, ylab="log2(expression + 1)", main="gene A", border="grey")
+points(jitter(as.numeric(d$cond)), d$expr, xaxt="n", xlab="", ylab="log2(expression + 1)", main="gene A")
+m_total = mean(d[d$cond=="TOTAL",]$expr)
+m_polya = mean(d[d$cond=="POLYA",]$expr)
+# abline(h=c(m_polya, m_total), col="grey", lty=2)
+segments(0.5, m_polya, 1.5, m_polya, col=2, lty=2)
+segments(2.5, m_total, 1.5, m_total, col=2, lty=2)
+arrows(1.5, (m_polya + m_total)/2, 1.5, m_polya, col=2, lwd=2, length=0.05)
+arrows(1.5, (m_polya + m_total)/2, 1.5, m_total, col=2, lwd=2, length=0.05)
+text(1.5, (m_polya + m_total)/2, "l2fc", cex=1.5)  
+```
+
+
+---
+
+## Volcano plot - Why *-log10(adj. pvalue)*?
+
+```{r echo=FALSE}
+layout(matrix(1:3, 1), respect=TRUE)
+plot(density(results$pvalue, na.rm=TRUE), main="distribution of p-value")
+# plot(density(-log10(results$pvalue), na.rm=TRUE), main="distribution of p-value")
+plot(results$pvalue, results$padj)
+abline(0,1, col=2, lty=2)
+plot(-log10(results$pvalue), -log10(results$padj))
+abline(0,1, col=2, lty=2)
+```
+
+
+```{r echo=FALSE, results="verbatim"}
+pvals = c(0.1, 0.05, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001)
+m = cbind(pvals, -log10(pvals))
+colnames(m) = c("pval", "-log10(pval)")
+print(m)
+```
+---
+
+## Volcano plot - in practice
+
+```{r echo=TRUE, fig.height=4}
+layout(matrix(1:2, 1), respect=TRUE)
+plot(results$log2FoldChange, -log10(results$padj),   main="Volcano plot POLYA vs. TOTAL (ref.)", pch=".")
+plot(results$log2FoldChange, -log10(results$pvalue), main="Volcano plot POLYA vs. TOTAL (ref.)", pch=".")
+```
+
+---
+
+## Volcano plot - histone genes
+
+```{r echo=FALSE, fig.height=6}
+layout(1, respect=TRUE)
+plot(results$log2FoldChange, -log10(results$pvalue),   main="Volcano plot POLYA vs. TOTAL (ref.)", pch=".", col="grey")
+idx = rownames(results)[grep("HIST",rownames(results))]
+text(results[idx,]$log2FoldChange, -log10(results[idx,]$pvalue), idx, cex=0.5)
+points(results[idx,]$log2FoldChange, -log10(results[idx,]$pvalue), col=2)
+```
+
+---
+
+# Heatmap
+
+```{r echo=TRUE, fig.height=8}
+idx_genes = rownames(results)[grep("HIST",rownames(results))]
+idx_samples = colnames(results)[grep("norm",colnames(results))]
+
+# GO!
+# log2 of expression for data
+data = log2(as.matrix(results[idx_genes, idx_samples])+1)
+# normalization... centered and reduced
+data = data - apply(data, 1, mean)
+data = data / apply(data, 1, sd)    
+# remove rows with no variation (needed to clustering rows according to cor)
+data = data[apply(data, 1, function(l) {length(unique(l))})>1, ]
+# clustering samples...
+# ... based on eucl. dist.
+tmp_d = t(data)
+d = dist(tmp_d)
+hc_col = hclust(d, method="complete")
+Colv = as.dendrogram(hc_col)
+# clustering genes...
+# ... bases on correlation
+tmp_d = data
+tmp_d = tmp_d[!apply(is.na(tmp_d), 1, any), ]
+d = dist(1 - cor(t(tmp_d), method="pe"))
+hc_row = hclust(d, method="complete")
+Rowv = as.dendrogram(hc_row)      
+
+# colors
+colors=
+cols = 
+gplots::heatmap.2(data, 
+  Rowv=Rowv, Colv=Colv, dendrogram=dendrogram, 
+  col=colorRampPalette(c("cyan", "black", "red"))(20), 
+  main=paste0("Mean of mean (", nrow(data), " features x ", ncol(data), " tissues)"), 
+  trace="none", mar=c(10,5), useRaster=TRUE, cexRow=0.4 , cexCol=0.4
+)
+
+```
+
+
+---
+
+# Gene Set Enrichment Analysis (GSEA)
+
+GSEA is a computational method that determines whether an a priori defined set of genes shows statistically 
+significant, concordant differences between two biological states 
+
+
+http://software.broadinstitute.org/gsea
+
+1. Open the `gsea_1024m.jnlp` provided file.
+2. Go to `Load data` item.
+3. Click on `Browse for file` button and select the `gsea_input.rnk` file (see the R code above to export).
+4. Go to `Run GSEAPreranked` item.
+5. Fill the `Gene sets database` field with for exemple the database `c5.bp.v7.0symbols.gmt`.
+6. Fill the `Ranked List` field abd select the just imported `gsea_input` item.
+7. Click on the `Run` button on the bottom of the window.
+8. The job is `Running` (left panel of the window).
+9. Whene job end succesfully, click on it to see results.
+
+```{r echo=TRUE, fig.height=8}
+write.table(cbind(rownames(results[!is.na(results$log2FoldChange),]), results[!is.na(results$log2FoldChange),]$log2FoldChange), "gsea_input.rnk", sep="\t", row.names=FALSE, col.names=FALSE, quote=FALSE)
+```
+
+```{r echo=FALSE}
+# ngs = "c2_REACTOME_PACKAGING_OF_TELOMERE_ENDS"
+# ngs = "c5_GO_HOMOPHILIC_CELL_ADHESION_VIA_PLASMA_MEMBRANE_ADHESION_MOLECULES"
+# c5.bp.v7.symbols.gmt 
+```
+---
+
+
+
+# Session Information
+ 
+```{r, results="verbatim"}
+sessionInfo()
+```
+ 
+ 
+ 
+ 
