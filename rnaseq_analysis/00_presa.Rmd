@@ -3,7 +3,10 @@ title: "RNAseq Analysis"
 subtitle: "Non polyA gene signature"
 author: "Céline Mandier, Florent Chuffart (EpiMed/IAB/INSERM)"
 date: "`r Sys.Date()`"
-output: slidy_presentation
+output: 
+  slidy_presentation:
+    toc: true
+
 ---
 
 
