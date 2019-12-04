@@ -57,7 +57,7 @@ There is two main ways to prepare RNA samples before sequencing:
 
 The aim of study is to select, *in-silco*, a set of genes that are expressed in condition 1 and not expressed in condition 2.
 
-We plane to use the list of gene as signature to automatically detect (or confirm) how RNA samples have been prepared.
+We plan to use the list of gene as signature to automatically detect (or confirm) how RNA samples have been prepared.
 
 We expect to found genes coding for histones.
 
