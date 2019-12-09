@@ -41,8 +41,10 @@ echo 'export PATH="/summer/epistorage/miniconda3/bin:$PATH"' >> ~/.profile
 echo 'export OAR_JOB_KEY_FILE=~/.ssh/id_rsa' >> ~/.profile
 
 ##### 4. launch resources
+# overview of available ressources
+chandler
 # Interactive connection to ressources
 oarsub -I --project epimed
 # Launch batch on computing element
-oarsub --project epimed "sleep 3600"
+# oarsub --project epimed "sleep 30"
 
