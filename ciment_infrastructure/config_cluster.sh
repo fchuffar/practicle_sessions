@@ -33,6 +33,7 @@ scp -r .ssh dahu:.
 
 ##### 3. Fine tunning of ~/.profile
 # On luke (ssh luke)
+ssh luke
 # Add epimed environment to your PATH
 echo 'export PATH="/summer/epistorage/opt/bin:$PATH"' >> ~/.profile
 echo 'export PATH="/summer/epistorage/miniconda3/bin:$PATH"' >> ~/.profile
