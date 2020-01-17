@@ -2,8 +2,10 @@
 ##### https://perseus.ujf-grenoble.fr/
 
 ##### 2. Fine tunning of ssh
-# Generate keys, without passphrase (at your own risks)
+# Generate keys, with passphrase for cluster access
 ssh-keygen
+# Generate keys, without passphrase for accessing current jobs
+ssh-keygen -f ~/.ssh/id_rsa_open
 # Set ssh configuration
 # use access-ciment machine to access to ciment clusters
 echo "
