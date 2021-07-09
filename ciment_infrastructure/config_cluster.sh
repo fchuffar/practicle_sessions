@@ -19,7 +19,7 @@ Host rotule
 Host luke dahu
    User fchdemo
    ProxyCommand ssh fchdemo@access-ciment.imag.fr -W %h:%p
-" > .ssh/config 
+" > ~/.ssh/config 
 # Copy keys and config on access-ciment (trinity and rotule)
 scp -r .ssh fchdemo@access-ciment.imag.fr:.
 scp -r .ssh trinity:. 
