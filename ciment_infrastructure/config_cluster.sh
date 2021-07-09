@@ -2,7 +2,7 @@
 ##### https://perseus.ujf-grenoble.fr/
 
 ##### 2. Fine tunning of ssh
-# Generate keys, without passphrase (at your own risks)
+# Generate keys with passphrase
 ssh-keygen
 # Set ssh configuration
 # use access-ciment machine to access to ciment clusters
@@ -32,8 +32,8 @@ scp -r .ssh luke:.
 scp -r .ssh dahu:.
 
 ##### 3. Fine tunning of ~/.profile
-# On luke (ssh luke)
-ssh luke
+# On dahu (ssh dahu)
+ssh dahu
 # Add epimed environment to your PATH
 echo 'export PATH="/summer/epistorage/opt/bin:$PATH"' >> ~/.profile
 echo 'export PATH="/summer/epistorage/miniconda3/bin:$PATH"' >> ~/.profile
