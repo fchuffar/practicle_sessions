@@ -1,5 +1,5 @@
 ##### 1. Creating account on perseus
-##### https://perseus.ujf-grenoble.fr/
+##### https://perseus.univ-grenoble-alpes.fr/login?redirect=%2F
 
 ##### 2. Fine tunning of ssh
 # Generate keys with passphrase
@@ -16,7 +16,7 @@ Host trinity
 Host rotule
    User fchdemo
    hostname rotule.imag.fr
-Host luke dahu
+Host luke dahu cargo
    User fchdemo
    ProxyCommand ssh fchdemo@access-ciment.imag.fr -W %h:%p
 " > ~/.ssh/config 
