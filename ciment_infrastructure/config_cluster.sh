@@ -12,26 +12,30 @@ echo "
 Host *
    StrictHostKeyChecking no
    HashKnownHosts no
-Host trinity
+ Host rotule
+   User chuffarf
+   IdentityFile  ~/.ssh/id_rsa_2048
+   Hostname rotule.univ-grenoble-alpes.fr
+ Host trinity
+   User chuffarf
+   IdentityFile  ~/.ssh/id_rsa_2048
+   Hostname trinity.univ-grenoble-alpes.fr
+Host luke dahu cargo
    User fchdemo
-   hostname trinity.ujf-grenoble.fr
-Host rotule
-   User fchdemo
-   hostname rotule.imag.fr
-Host luke dahu
-   User fchdemo
-   ProxyCommand ssh fchdemo@access-ciment.imag.fr -W %h:%p
+   ProxyCommand ssh fchdemo@access-gricad.univ-grenoble-alpes.fr -W %h:%p
 " > .ssh/config 
 # Copy keys and config on access-ciment (trinity and rotule)
-scp -r .ssh fchdemo@access-ciment.imag.fr:.
 scp -r .ssh trinity:. 
 scp -r .ssh rotule:.
 
 # Connection on access-ciment to authorize keys and copy config to luke
-ssh fchdemo@access-ciment.imag.fr
+ssh trinity
 cat .ssh/id_rsa.pub > .ssh/authorized_keys
-scp -r .ssh luke:.
+ssh rotule
+cat .ssh/id_rsa.pub > .ssh/authorized_keys
 scp -r .ssh dahu:.
+scp -r .ssh luke:.
+scp -r .ssh cargo:.
 
 ##### 3. Fine tunning of ~/.profile
 # On luke (ssh luke)
@@ -46,4 +50,5 @@ echo 'export OAR_JOB_KEY_FILE=~/.ssh/id_rsa' >> ~/.profile
 oarsub -I --project epimed
 # Launch batch on computing element
 oarsub --project epimed "sleep 3600"
-
+# Lauch devel job (30min on a node, i.e., 32 cores)
+oarsub --project epimed  -l nodes=1,walltime=00:30:00 -t devel -I
