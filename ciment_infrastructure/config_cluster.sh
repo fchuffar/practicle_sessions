@@ -13,12 +13,12 @@ Host *
    StrictHostKeyChecking no
    HashKnownHosts no
  Host rotule
-   User chuffarf
-   IdentityFile  ~/.ssh/id_rsa_2048
+   User fchdemo
+   IdentityFile  ~/.ssh/id_rsa
    Hostname rotule.univ-grenoble-alpes.fr
  Host trinity
-   User chuffarf
-   IdentityFile  ~/.ssh/id_rsa_2048
+   User fchdemo
+   IdentityFile  ~/.ssh/id_rsa
    Hostname trinity.univ-grenoble-alpes.fr
 Host luke dahu cargo
    User fchdemo
@@ -28,7 +28,7 @@ Host luke dahu cargo
 scp -r .ssh trinity:. 
 scp -r .ssh rotule:.
 
-# Connection on access-ciment to authorize keys and copy config to luke
+# Connection on access-ciment to authorize keys and copy config to dahu
 ssh trinity
 cat .ssh/id_rsa.pub > .ssh/authorized_keys
 ssh rotule
@@ -38,7 +38,7 @@ scp -r .ssh luke:.
 scp -r .ssh cargo:.
 
 ##### 3. Fine tunning of ~/.profile
-# On luke (ssh luke)
+# On dahu (ssh dahu)
 # Add epimed environment to your PATH
 echo 'export PATH="/summer/epistorage/opt/bin:$PATH"' >> ~/.profile
 echo 'export PATH="/summer/epistorage/miniconda3/bin:$PATH"' >> ~/.profile
